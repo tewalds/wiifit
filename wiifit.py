@@ -17,23 +17,20 @@ record_length = 0x9281
 
 with open(file_name, 'rb') as in_file:
     # Iterate through each Mii.
-    for record_start in xrange(0, record_length * 100, record_length):
+    for record_start in range(0, record_length * 100, record_length):
         # Go to the start of the current record.
         in_file.seek(record_start)
 
         # Read the first 30 bytes (header + name).
         line = in_file.read(30)
 
-        # For some reason names are stored as N a m e instead of Name.
-        # Throw away the header and any extranous spaces.
-        data = struct.unpack('<9xcxcxcxcxcxcxcxcxcxcxc', line)
-
-        # Condense our unpacked characters into a string.
-        wf_name = string.join(data, '').strip('\0')
+        # Throw away the header and any trailing zeros.
+        wf_name = line[8:].decode('utf-16be').replace('\0','')
+        
         if not wf_name:
             break
 
-        print 'Found', wf_name
+        print('Found', wf_name)
 
         # Open a new CSV file for this person.
         with open('wiifit_%s.csv' % wf_name, 'w') as out_file:
